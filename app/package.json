@@ -1,0 +1,18 @@
+{
+  "author": "Nour El Houda Bouajila <https://github.com/nourhb>",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "description": "Demo microservice for the zero-trust software supply chain project",
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "main": "server.js",
+  "name": "zero-trust-demo-app",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "version": "1.0.0"
+}
