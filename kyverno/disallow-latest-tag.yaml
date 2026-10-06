@@ -1,0 +1,67 @@
+# ---------------------------------------------------------------------------
+# Zero-Trust Supply Chain — Kyverno ClusterPolicy: disallow mutable tags
+# Author: Nour El Houda Bouajila (https://github.com/nourhb)
+#
+# ATTACK PREVENTED: tag mutability / tag confusion.
+# A tag like `:latest` is a moving pointer: whoever controls the registry can
+# repoint it to a malicious image at any time, and your "unchanged" manifest
+# suddenly runs different code. Even without malice, mutable tags make
+# rollbacks and audits impossible — you can never prove WHAT ran.
+#
+# This policy forces every image reference to be pinned by digest
+# (image@sha256:...), which is content-addressed and immutable by design.
+# The CI pipeline (see .github/workflows/supply-chain.yaml) outputs the
+# exact digest to pin after every successful signed build.
+# ---------------------------------------------------------------------------
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-mutable-tags
+  annotations:
+    policies.kyverno.io/title: Disallow Mutable Image Tags
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Container images must be referenced by immutable digest
+      (image@sha256:...) — mutable tags such as :latest are forbidden.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-image-digest
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: >-
+          Images must be pinned by digest (e.g. image@sha256:<digest>).
+          Mutable tags like :latest are forbidden because they can be
+          repointed to different content at any time.
+        foreach:
+          - list: request.object.spec.containers[]
+            deny:
+              conditions:
+                all:
+                  # The image reference must contain a digest separator.
+                  - key: "{{ element.image }}"
+                    operator: NotContains
+                    value: "@sha256:"
+          - list: request.object.spec.initContainers[]
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.image }}"
+                    operator: NotContains
+                    value: "@sha256:"
+          # Ephemeral containers are a common backdoor vector: they can be
+          # injected into RUNNING pods via kubectl debug. Pin them too.
+          - list: request.object.spec.ephemeralContainers[]
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.image }}"
+                    operator: NotContains
+                    value: "@sha256:"
