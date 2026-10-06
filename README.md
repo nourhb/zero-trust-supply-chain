@@ -10,6 +10,8 @@ A complete, working **zero-trust software supply chain** for containers:
 every image is **built → scanned → signed (keyless) → attested (SLSA + SBOM)**,
 and the Kubernetes cluster **re-verifies everything at admission time**
 before a single Pod is allowed to run.
+![Zero-Trust Supply Chain — pipeline flow](docs/images/supply-chain-flow.png)
+
 
 ## Why zero-trust supply chain?
 
@@ -17,6 +19,7 @@ SolarWinds, Codecov, and countless registry compromises taught the same
 lesson: if your cluster runs whatever image a tag points to, you don't have
 a supply chain — you have a hope chain. This project replaces hope with
 cryptography:
+
 
 - **No long-lived keys.** Signing is keyless: Fulcio issues short-lived
   certificates from GitHub OIDC identity, and every signature is logged in
