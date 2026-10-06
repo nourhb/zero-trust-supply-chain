@@ -1,0 +1,10 @@
+# ---------------------------------------------------------------------------
+# Zero-Trust Supply Chain — demo namespace
+# Author: Nour El Houda Bouajila (https://github.com/nourhb)
+# ---------------------------------------------------------------------------
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: supply-chain-demo
+  labels:
+    app.kubernetes.io/part-of: zero-trust-supply-chain
